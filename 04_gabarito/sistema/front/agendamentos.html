@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbearia - Agendamentos</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <header>
+        <a href="principal.html">Principal</a>
+        <a href="barbeiros.html">Barbeiros</a>
+        <a href="clientes.html">Clientes</a>
+        <button onclick="sair()">Sair</button>
+    </header>
+
+    <main>
+        <h1>Agendamentos</h1>
+
+        <form id="formAgendamento" onsubmit="cadastrar(event)">
+            <h3>Novo agendamento</h3>
+            <input type="datetime-local" id="data_agendamento">
+            <input type="text" id="servico" placeholder="Serviço (ex: Corte + Barba)">
+            <select id="barbeiro_id"><option value="">Barbeiro...</option></select>
+            <select id="cliente_id"><option value="">Cliente...</option></select>
+            <br>
+            <button type="submit">Agendar</button>
+        </form>
+
+        <!-- Listagem ordenada por data com TODOS os dados do barbeiro e do cliente -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th><th>Serviço</th>
+                    <th>Barbeiro</th><th>E-mail barbeiro</th><th>Tel. barbeiro</th>
+                    <th>Cliente</th><th>Tel. cliente</th><th>Estilo</th>
+                    <th>Nova data</th>
+                </tr>
+            </thead>
+            <tbody id="lista"></tbody>
+        </table>
+    </main>
+
+    <script src="sessao.js"></script>
+    <script>
+        protegerPagina()
+
+        async function carregarAgendamentos() {
+            const agendamentos = await api('/agendamentos')
+            const lista = document.getElementById('lista')
+            lista.innerHTML = ''
+
+            agendamentos.forEach(ag => {
+                lista.innerHTML += `
+                    <tr>
+                        <td>${formatarData(ag.data_agendamento)}</td>
+                        <td>${ag.servico}</td>
+                        <td>${ag.barbeiro_nome}</td>
+                        <td>${ag.barbeiro_email}</td>
+                        <td>${ag.barbeiro_telefone || ''}</td>
+                        <td>${ag.cliente_nome}</td>
+                        <td>${ag.cliente_telefone || ''}</td>
+                        <td>${ag.cliente_estilo_corte || ''}</td>
+                        <td>
+                            <input type="datetime-local" id="data-${ag.id}">
+                            <button onclick="atualizarData(${ag.id})">Atualizar data</button>
+                        </td>
+                    </tr>
+                `
+            })
+        }
+
+        async function atualizarData(id) {
+            const novaData = document.getElementById(`data-${id}`).value
+
+            if (!novaData) {
+                alert('Escolha a nova data!')
+                return
+            }
+
+            const dados = await api(`/agendamentos/${id}`, 'PUT', { data_agendamento: novaData })
+            alert(dados.message)
+            carregarAgendamentos()
+        }
+
+        async function carregarSelects() {
+            const barbeiros = await api('/barbeiros')
+            const clientes = await api('/clientes')
+
+            barbeiros.forEach(b => {
+                document.getElementById('barbeiro_id').innerHTML += `<option value="${b.id}">${b.nome}</option>`
+            })
+            clientes.forEach(c => {
+                document.getElementById('cliente_id').innerHTML += `<option value="${c.id}">${c.nome}</option>`
+            })
+        }
+
+        async function cadastrar(event) {
+            event.preventDefault()
+
+            const agendamento = {
+                data_agendamento: document.getElementById('data_agendamento').value,
+                servico: document.getElementById('servico').value,
+                barbeiro_id: document.getElementById('barbeiro_id').value,
+                cliente_id: document.getElementById('cliente_id').value
+            }
+
+            const dados = await api('/agendamentos', 'POST', agendamento)
+            alert(dados.message)
+            document.getElementById('formAgendamento').reset()
+            carregarAgendamentos()
+        }
+
+        carregarSelects()
+        carregarAgendamentos()
+    </script>
+</body>
+</html>

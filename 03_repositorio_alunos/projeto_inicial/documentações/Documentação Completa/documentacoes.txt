@@ -1,0 +1,88 @@
+============================================================================
+     DOCUMENTAÇÃO DE SOFTWARE (documentacao.pdf) - ENTREGA 1 / ANEXO 1
+============================================================================
+
+O Anexo 1 pede DUAS coisas e as duas valem ponto:
+  1.1 Tabela de Requisitos Funcionais (MÍNIMO 4)  -> peso 2
+  1.2 Requisitos de infraestrutura: SGBD + versão e Linguagem + versão -> peso 1
+
+Dica: os requisitos saem direto das REGRAS DE NEGÓCIO do caderno de prova.
+Cada regra de negócio vira pelo menos um requisito. Escreva sempre
+"O sistema deve permitir..." / "O sistema deve exibir...".
+
+Como gerar o PDF: preencha o "ANEXO 1 - Documentação de Software_Editável.doc"
+no Word/LibreOffice e use Arquivo > Salvar como > PDF (nome: documentacao.pdf).
+
+
+// ### 1.1 REQUISITOS FUNCIONAIS (exemplo para a Barbearia)
+
+| ID   | Requisito                     | Descrição                                                                                              |
+|------|-------------------------------|--------------------------------------------------------------------------------------------------------|
+| RF01 | Autenticar usuário            | O sistema deve permitir o login com e-mail e senha cadastrados, exibindo mensagem em caso de falha.    |
+| RF02 | Controlar sessão              | O sistema deve encerrar a sessão do usuário após 30 minutos (token JWT com expiração).                 |
+| RF03 | Exibir tela principal         | O sistema deve exibir o nome do usuário logado, o acesso a Barbeiro, Cliente e Agendamento e a opção Sair. |
+| RF04 | Gerenciar barbeiros           | O sistema deve permitir listar, cadastrar, editar e excluir barbeiros.                                 |
+| RF05 | Buscar barbeiros              | O sistema deve permitir buscar barbeiros por um termo (nome ou e-mail), atualizando a listagem.        |
+| RF06 | Proteger dados do barbeiro    | O sistema deve armazenar a senha e o CPF do barbeiro criptografados no banco (LGPD).                   |
+| RF07 | Cadastrar cliente             | O sistema deve permitir cadastrar um cliente associando-o a um barbeiro.                               |
+| RF08 | Listar agendamentos           | O sistema deve listar os agendamentos ordenados por data, com os dados do barbeiro e do cliente.       |
+| RF09 | Atualizar data do agendamento | O sistema deve permitir alterar a data de um agendamento já cadastrado.                                |
+
+
+// ### 1.2 REQUISITOS DE INFRAESTRUTURA
+
+SGBD Utilizado: PostgreSQL
+Versão: 17
+
+Linguagem de Programação: JavaScript (Node.js)
+Versão: Node.js 20   (confira no terminal com: node -v)
+
+Dica: confira a versão do Postgres no pgAdmin com: SELECT version();
+
+
+// ### 1.3 DIAGRAMA ENTIDADE RELACIONAMENTO (der.png ou der.pdf) - ENTREGA 2
+
+Jeito mais rápido (sem internet): pgAdmin 4
+  1. Rode o saep_db.sql no banco saep_db.
+  2. Botão direito no banco "saep_db" > "ERD For Database".
+  3. No diagrama, clique no ícone de imagem "Download image" -> salva PNG.
+  4. Renomeie para der.png.
+
+O DER da barbearia precisa mostrar as 4 tabelas e as ligações:
+
+   usuario (sem ligação)
+
+   barbeiro 1 ────< N cliente          (cliente.barbeiro_id -> barbeiro.id)
+   barbeiro 1 ────< N agendamento      (agendamento.barbeiro_id -> barbeiro.id)
+   cliente  1 ────< N agendamento      (agendamento.cliente_id -> cliente.id)
+
+
+// ### 5. MODELAGEM DAS TABELAS
+
+Tabela: usuario
+- id: SERIAL PRIMARY KEY
+- nome: VARCHAR(100) NOT NULL
+- email: VARCHAR(100) NOT NULL UNIQUE
+- senha: VARCHAR(255) NOT NULL (hash bcrypt)
+
+Tabela: barbeiro
+- id: SERIAL PRIMARY KEY
+- nome: VARCHAR(100) NOT NULL
+- email: VARCHAR(100) NOT NULL UNIQUE
+- cpf: VARCHAR(255) NOT NULL (hash bcrypt - LGPD)
+- senha: VARCHAR(255) NOT NULL (hash bcrypt)
+- telefone: VARCHAR(20)
+
+Tabela: cliente
+- id: SERIAL PRIMARY KEY
+- nome: VARCHAR(100) NOT NULL
+- telefone: VARCHAR(20)
+- estilo_corte: VARCHAR(100)
+- barbeiro_id: INT NOT NULL (FOREIGN KEY -> barbeiro.id)
+
+Tabela: agendamento
+- id: SERIAL PRIMARY KEY
+- data_agendamento: TIMESTAMP NOT NULL
+- servico: VARCHAR(100) NOT NULL
+- barbeiro_id: INT NOT NULL (FOREIGN KEY -> barbeiro.id)
+- cliente_id: INT NOT NULL (FOREIGN KEY -> cliente.id)

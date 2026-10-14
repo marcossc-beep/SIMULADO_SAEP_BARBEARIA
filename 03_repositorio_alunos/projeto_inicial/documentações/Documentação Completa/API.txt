@@ -1,0 +1,212 @@
+// ### Introdução
+
+A API conecta o front (HTML) ao banco (PostgreSQL). Usamos:
+- fastify: o servidor HTTP (a "loja" que já vende os tijolos prontos para construir a casa)
+- pg: a biblioteca que conversa com o Postgres
+- @fastify/cors: libera o navegador para chamar a API
+- @fastify/jwt e bcrypt: segurança (ver criptografia.txt)
+
+Instalação (já está no package.json, só rodar):
+
+    npm install
+    npm start          (roda com --watch: salvou, reiniciou)
+
+
+// ### Estrutura do server.js (nesta ordem)
+
+import Fastify from 'fastify'
+import cors from '@fastify/cors'
+import jwt from '@fastify/jwt'
+import bcrypt from 'bcrypt'
+import { Pool } from 'pg'
+
+const servidor = Fastify()
+
+servidor.register(cors, {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
+})
+
+servidor.register(jwt, {
+    secret: 'saep_barbearia_2026',
+    sign: { expiresIn: '30m' }
+})
+
+// Conexão com o banco: confira usuário, senha e porta do Postgres da SUA máquina
+const sql = new Pool({
+    user: 'postgres',
+    password: 'senai',
+    host: 'localhost',
+    port: 5432,
+    database: 'saep_db'
+})
+
+// ... rotas aqui ...
+
+servidor.listen({ port: 3000 }).then(() => {
+    console.log('API da barbearia rodando em http://localhost:3000')
+})
+
+
+// ### sql.query: SEMPRE com $1, $2... (evita SQL injection)
+
+await sql.query('DELETE FROM barbeiro WHERE id = $1', [id])
+
+// $1 recebe o 1º item do array, $2 o 2º e assim por diante.
+// O resultado vem em resultado.rows (array de linhas).
+// resultado.rowCount diz quantas linhas foram afetadas (UPDATE/DELETE).
+
+
+// ### request e reply
+
+request.body    -> o JSON que veio no corpo (POST e PUT)
+request.params  -> o que veio na URL com : (ex: /barbeiros/:id -> request.params.id)
+request.query   -> o que veio depois do ? (ex: /barbeiros?busca=raf -> request.query.busca)
+
+return reply.status(400).send({ message: '...' })   -> resposta com status personalizado
+return resultado.rows                               -> resposta 200 com o array
+
+Status mais usados:
+200 OK | 201 Criado | 400 Faltou dado | 401 Não autenticado | 404 Não encontrado
+
+
+// ### GET com busca opcional (critério 5.1 e 5.2)
+
+servidor.get('/barbeiros', { preHandler: autenticar }, async (request, reply) => {
+    const busca = request.query.busca
+
+    if (busca) {
+        const resultado = await sql.query(
+            'SELECT id, nome, email, telefone FROM barbeiro WHERE nome ILIKE $1 OR email ILIKE $1 ORDER BY id',
+            [`%${busca}%`]
+        )
+        return resultado.rows
+    }
+
+    const resultado = await sql.query('SELECT id, nome, email, telefone FROM barbeiro ORDER BY id')
+    return resultado.rows
+})
+
+// OBS: não devolvemos cpf e senha na listagem, eles estão criptografados.
+// { preHandler: autenticar } obriga a ter token válido (ver usuario_logado.txt).
+
+
+// ### POST (cadastrar)
+
+servidor.post('/barbeiros', { preHandler: autenticar }, async (request, reply) => {
+    const body = request.body
+
+    if (!body || !body.nome || !body.email || !body.cpf || !body.senha) {
+        return reply.status(400).send({ message: 'Nome, e-mail, CPF e senha são obrigatórios!' })
+    }
+
+    const cpfHash = await bcrypt.hash(body.cpf, 10)
+    const senhaHash = await bcrypt.hash(body.senha, 10)
+
+    await sql.query(
+        'INSERT INTO barbeiro (nome, email, cpf, senha, telefone) VALUES ($1, $2, $3, $4, $5)',
+        [body.nome, body.email, cpfHash, senhaHash, body.telefone]
+    )
+
+    return reply.status(201).send({ message: 'Barbeiro cadastrado!' })
+})
+
+
+// ### PUT (editar) - critério 5.5
+
+servidor.put('/barbeiros/:id', { preHandler: autenticar }, async (request, reply) => {
+    const body = request.body
+    const id = request.params.id
+
+    if (!body || !body.nome || !body.email) {
+        return reply.status(400).send({ message: 'Nome e e-mail são obrigatórios!' })
+    }
+
+    const barbeiro = await sql.query('SELECT * FROM barbeiro WHERE id = $1', [id])
+    if (barbeiro.rows.length === 0) {
+        return reply.status(404).send({ message: 'Barbeiro não existe!' })
+    }
+
+    await sql.query(
+        'UPDATE barbeiro SET nome = $1, email = $2, telefone = $3 WHERE id = $4',
+        [body.nome, body.email, body.telefone, id]
+    )
+
+    // CPF e senha só mudam se vierem preenchidos (e continuam criptografados)
+    if (body.cpf) {
+        const cpfHash = await bcrypt.hash(body.cpf, 10)
+        await sql.query('UPDATE barbeiro SET cpf = $1 WHERE id = $2', [cpfHash, id])
+    }
+    if (body.senha) {
+        const senhaHash = await bcrypt.hash(body.senha, 10)
+        await sql.query('UPDATE barbeiro SET senha = $1 WHERE id = $2', [senhaHash, id])
+    }
+
+    return reply.status(200).send({ message: `Barbeiro ${body.nome} alterado!` })
+})
+
+
+// ### DELETE (excluir) - critério 5.1
+
+servidor.delete('/barbeiros/:id', { preHandler: autenticar }, async (request, reply) => {
+    const id = request.params.id
+    await sql.query('DELETE FROM barbeiro WHERE id = $1', [id])
+    return reply.status(200).send({ message: 'Barbeiro excluído!' })
+})
+
+
+// ### Testando com REST Client (referencias.http)
+
+Regras do arquivo .http:
+1. ### separa uma requisição da outra.
+2. Primeira linha: MÉTODO + URL completa.
+3. Headers logo abaixo (Content-Type: application/json, Authorization: Bearer ...).
+4. UMA LINHA EM BRANCO obrigatória entre headers e body.
+5. Body em JSON (POST e PUT).
+6. Variável: @token = valor  ->  usar como {{token}}
+
+@token = COLE_O_TOKEN_DO_LOGIN_AQUI
+
+### Login
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+    "email": "marcos@barbearia.com",
+    "senha": "123"
+}
+
+### Listar barbeiros
+GET http://localhost:3000/barbeiros
+Authorization: Bearer {{token}}
+
+### Buscar barbeiros
+GET http://localhost:3000/barbeiros?busca=raf
+Authorization: Bearer {{token}}
+
+### Cadastrar barbeiro
+POST http://localhost:3000/barbeiros
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nome": "Thiago Pente",
+    "email": "thiago@barbearia.com",
+    "cpf": "444.555.666-77",
+    "senha": "123",
+    "telefone": "48999994444"
+}
+
+### Excluir barbeiro
+DELETE http://localhost:3000/barbeiros/4
+Authorization: Bearer {{token}}
+
+
+// ### Erros comuns
+
+- "password authentication failed": senha do Pool errada.
+- "database saep_db does not exist": não criou o banco ou o nome está diferente.
+- "EADDRINUSE 3000": a API já está rodando em outro terminal.
+- 401 em tudo: esqueceu o Authorization: Bearer ou o token expirou (faça login de novo).
+- "Body cannot be empty when content-type is set to application/json":
+  mandou Content-Type num DELETE sem body. Tire o header.

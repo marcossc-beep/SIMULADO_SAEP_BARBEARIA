@@ -1,0 +1,133 @@
+// ### Dropdown (<select>) com chave estrangeira - tela de Clientes
+
+Critério 6.1: inserir um novo cliente ASSOCIANDO-O a um barbeiro (peso 3).
+
+O usuário não digita o id do barbeiro. Fazemos assim:
+1. O front busca os barbeiros (GET /barbeiros).
+2. Cada barbeiro vira um <option>: o texto é o NOME, o value é o ID.
+3. Ao salvar, o value escolhido vai no body como barbeiro_id (chave estrangeira).
+
+
+// ### Backend
+
+servidor.get('/clientes', { preHandler: autenticar }, async (request, reply) => {
+    const resultado = await sql.query(`
+        SELECT cliente.*, barbeiro.nome AS barbeiro_nome
+        FROM cliente
+        INNER JOIN barbeiro ON cliente.barbeiro_id = barbeiro.id
+        ORDER BY cliente.id
+    `)
+    return resultado.rows
+})
+
+servidor.post('/clientes', { preHandler: autenticar }, async (request, reply) => {
+    const body = request.body
+
+    if (!body || !body.nome || !body.barbeiro_id) {
+        return reply.status(400).send({ message: 'Nome e barbeiro são obrigatórios!' })
+    }
+
+    const barbeiro = await sql.query('SELECT id FROM barbeiro WHERE id = $1', [body.barbeiro_id])
+    if (barbeiro.rows.length === 0) {
+        return reply.status(400).send({ message: 'Barbeiro informado não existe!' })
+    }
+
+    await sql.query(
+        'INSERT INTO cliente (nome, telefone, estilo_corte, barbeiro_id) VALUES ($1, $2, $3, $4)',
+        [body.nome, body.telefone, body.estilo_corte, body.barbeiro_id]
+    )
+
+    return reply.status(201).send({ message: 'Cliente cadastrado!' })
+})
+
+
+// ### Front (clientes.html)
+
+<form id="formCliente" onsubmit="cadastrar(event)">
+    <input type="text" id="nome" placeholder="Nome">
+    <input type="text" id="telefone" placeholder="Telefone">
+    <input type="text" id="estilo_corte" placeholder="Estilo de corte">
+    <select id="barbeiro_id">
+        <option value="">Selecione o barbeiro...</option>
+    </select>
+    <button type="submit">Cadastrar</button>
+</form>
+
+<table>
+    <thead><tr><th>ID</th><th>Nome</th><th>Telefone</th><th>Estilo de corte</th><th>Barbeiro</th></tr></thead>
+    <tbody id="lista"></tbody>
+</table>
+
+<script src="sessao.js"></script>
+<script>
+    protegerPagina()
+
+    async function carregarBarbeiros() {
+        const barbeiros = await api('/barbeiros')
+        const select = document.getElementById('barbeiro_id')
+
+        barbeiros.forEach(barbeiro => {
+            const option = document.createElement('option')
+            option.value = barbeiro.id            // vai para o banco
+            option.textContent = barbeiro.nome    // aparece na tela
+            select.appendChild(option)
+        })
+    }
+
+    async function carregarClientes() {
+        const clientes = await api('/clientes')
+        const lista = document.getElementById('lista')
+        lista.innerHTML = ''
+
+        clientes.forEach(cliente => {
+            lista.innerHTML += `
+                <tr>
+                    <td>${cliente.id}</td>
+                    <td>${cliente.nome}</td>
+                    <td>${cliente.telefone || ''}</td>
+                    <td>${cliente.estilo_corte || ''}</td>
+                    <td>${cliente.barbeiro_nome}</td>
+                </tr>
+            `
+        })
+    }
+
+    async function cadastrar(event) {
+        event.preventDefault()
+
+        const cliente = {
+            nome: document.getElementById('nome').value,
+            telefone: document.getElementById('telefone').value,
+            estilo_corte: document.getElementById('estilo_corte').value,
+            barbeiro_id: document.getElementById('barbeiro_id').value
+        }
+
+        if (!cliente.barbeiro_id) {
+            alert('Selecione um barbeiro!')
+            return
+        }
+
+        const dados = await api('/clientes', 'POST', cliente)
+        alert(dados.message)
+        document.getElementById('formCliente').reset()
+        carregarClientes()
+    }
+
+    carregarBarbeiros()
+    carregarClientes()
+</script>
+
+
+// ### referencias.http
+
+### Cadastrar cliente associado ao barbeiro 1
+POST http://localhost:3000/clientes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nome": "Pedro Henrique",
+    "telefone": "48988884444",
+    "estilo_corte": "Low fade",
+    "barbeiro_id": 1
+}

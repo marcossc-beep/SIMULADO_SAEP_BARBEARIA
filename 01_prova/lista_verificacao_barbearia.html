@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Lista de Verificação - Simulado SAEP 2026 - Barbearia</title>
+<style>
+    @page { size: A4 landscape; margin: 10mm; }
+    body { font-family: Arial, sans-serif; font-size: 11.5px; color: #000; margin: 0 auto; max-width: 277mm; }
+    h1 { text-align: center; font-size: 15px; margin: 4px 0 8px; }
+    .cab { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+    .cab td { padding: 3px 4px; }
+    .comp { text-align: center; font-weight: bold; margin: 8px 0 2px; }
+    .compt { text-align: center; margin: 0 0 10px; }
+    table.at { width: 100%; border-collapse: collapse; margin-bottom: 10px; page-break-inside: avoid; }
+    table.at th, table.at td { border: 1px solid #555; padding: 4px 5px; vertical-align: top; }
+    table.at th { background: #e6e6e6; }
+    table.at .tit { background: #d0dff0; text-align: left; font-size: 12px; }
+    .c { text-align: center; width: 62px; }
+    .sn { width: 38px; }
+    .just { width: 170px; }
+    .total { text-align: right; font-weight: bold; margin-top: 8px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>LISTA DE VERIFICAÇÃO POR ATIVIDADE - SIMULADO BARBEARIA</h1>
+
+<table class="cab">
+    <tr><td>Aluno: ________________________________________________</td><td>Turma: (&nbsp;&nbsp;) 3B (&nbsp;&nbsp;) 3C</td></tr>
+    <tr><td>Avaliador: _____________________________________________</td><td>Data: 13/11/2026 &nbsp;&nbsp;&nbsp; Hora: ________</td></tr>
+    <tr><td>Curso: TÉCNICO EM DESENVOLVIMENTO DE SISTEMAS</td><td>Edição: 2021</td></tr>
+</table>
+
+<div class="comp">COMPETÊNCIA GERAL</div>
+<div class="compt">Desenvolver e programar sistemas computacionais, atendendo normas e padrão de qualidade, usabilidade, integridade e segurança da informação.</div>
+
+<table class="at">
+    <tr><th class="tit" colspan="6">ATIVIDADE 1. DOCUMENTAÇÃO DE SOFTWARE</th></tr>
+    <tr><th>Evidência observável</th><th class="c">Capacidade</th><th class="c">Peso</th><th class="sn">Sim</th><th class="sn">Não</th><th class="just">Justificativa do Não</th></tr>
+    <tr><td>1.1 Identificou no mínimo 4 requisitos do sistema conforme ANEXO 1?</td><td class="c">C1</td><td class="c">2</td><td></td><td></td><td></td></tr>
+    <tr><td>1.2 Identificou todos os requisitos de infraestrutura (SGBD e Linguagem de Programação) conforme ANEXO 1?</td><td class="c">C1</td><td class="c">1</td><td></td><td></td><td></td></tr>
+    <tr><td>1.3 Gerou diagrama entidade relacionamento conforme descrito no caderno de provas?</td><td class="c">C4</td><td class="c">1</td><td></td><td></td><td></td></tr>
+</table>
+
+<table class="at">
+    <tr><th class="tit" colspan="6">ATIVIDADE 2. SCRIPT (CRIAÇÃO E POPULAÇÃO) BANCO DE DADOS</th></tr>
+    <tr><th>Evidência observável</th><th class="c">Capacidade</th><th class="c">Peso</th><th class="sn">Sim</th><th class="sn">Não</th><th class="just">Justificativa do Não</th></tr>
+    <tr><td>2.1 Criou as tabelas no banco de dados respeitando a chave estrangeira de cada relacionamento?</td><td class="c">C4</td><td class="c">2</td><td></td><td></td><td></td></tr>
+    <tr><td>2.2 Inseriu pelo menos três registros em cada uma das tabelas criadas no banco de dados?</td><td class="c">C4</td><td class="c">1</td><td></td><td></td><td></td></tr>
+</table>
+
+<table class="at">
+    <tr><th class="tit" colspan="6">ATIVIDADE 3. FUNCIONALIDADE DE LOGIN</th></tr>
+    <tr><th>Evidência observável</th><th class="c">Capacidade</th><th class="c">Peso</th><th class="sn">Sim</th><th class="sn">Não</th><th class="just">Justificativa do Não</th></tr>
+    <tr><td>3.1 Desenvolveu a funcionalidade de autenticação do usuário redirecionando-o para o módulo principal da aplicação ao inserir login e senha registrado no banco de dados conforme descrito no caderno de provas?</td><td class="c">C7</td><td class="c">1</td><td></td><td></td><td></td></tr>
+    <tr><td>3.2 Criou uma sessão para o usuário autenticado com tempo de expiração conforme descrito no caderno de prova?</td><td class="c">C7</td><td class="c">3</td><td></td><td></td><td></td></tr>
+    <tr><td>3.3 Desenvolveu validação (frontend ou backend) caso haja falha de autenticação no login conforme descrito no caderno de provas?</td><td class="c">C3</td><td class="c">2</td><td></td><td></td><td></td></tr>
+</table>
+
+<table class="at">
+    <tr><th class="tit" colspan="6">ATIVIDADE 4. FUNCIONALIDADE PRINCIPAL DO SISTEMA</th></tr>
+    <tr><th>Evidência observável</th><th class="c">Capacidade</th><th class="c">Peso</th><th class="sn">Sim</th><th class="sn">Não</th><th class="just">Justificativa do Não</th></tr>
+    <tr><td>4.1 Recuperou o nome do usuário autenticado na sessão e exibiu na funcionalidade principal do sistema conforme descrito no caderno de provas?</td><td class="c">C7</td><td class="c">2</td><td></td><td></td><td></td></tr>
+    <tr><td>4.2 Desenvolveu um meio para sair do sistema conforme descrito no caderno de provas?</td><td class="c">C3</td><td class="c">1</td><td></td><td></td><td></td></tr>
+    <tr><td>4.3 Desenvolveu um meio de acessar as funcionalidades "Barbeiro", "Cliente" e "Agendamento" a partir da funcionalidade "Principal" conforme descrito no caderno de provas?</td><td class="c">C7</td><td class="c">1</td><td></td><td></td><td></td></tr>
+</table>
+
+<table class="at">
+    <tr><th class="tit" colspan="6">ATIVIDADE 5. FUNCIONALIDADE DE GERENCIAMENTO DE BARBEIRO</th></tr>
+    <tr><th>Evidência observável</th><th class="c">Capacidade</th><th class="c">Peso</th><th class="sn">Sim</th><th class="sn">Não</th><th class="just">Justificativa do Não</th></tr>
+    <tr><td>5.1 Desenvolveu as funcionalidades de listar e excluir os registros de barbeiros cadastrados conforme descrito no caderno de provas?</td><td class="c">C7</td><td class="c">2</td><td></td><td></td><td></td></tr>
+    <tr><td>5.2 Desenvolveu uma funcionalidade de busca com no mínimo um termo de busca conforme descrito no caderno de provas?</td><td class="c">C3</td><td class="c">3</td><td></td><td></td><td></td></tr>
+    <tr><td>5.3 Desenvolveu a funcionalidade para a inserção de um novo barbeiro com persistência no banco de dados conforme descrito no caderno de provas?</td><td class="c">C7</td><td class="c">2</td><td></td><td></td><td></td></tr>
+    <tr><td>5.4 Desenvolveu um meio para criptografar pelo menos a senha e o CPF do barbeiro no banco de dados conforme descrito no caderno de provas?</td><td class="c">C7</td><td class="c">3</td><td></td><td></td><td></td></tr>
+    <tr><td>5.5 Desenvolveu a programação para editar um barbeiro já existente no banco de dados conforme descrito no caderno de provas?</td><td class="c">C7</td><td class="c">3</td><td></td><td></td><td></td></tr>
+</table>
+
+<table class="at">
+    <tr><th class="tit" colspan="6">ATIVIDADE 6. FUNCIONALIDADE DE GERENCIAMENTO DE CLIENTES</th></tr>
+    <tr><th>Evidência observável</th><th class="c">Capacidade</th><th class="c">Peso</th><th class="sn">Sim</th><th class="sn">Não</th><th class="just">Justificativa do Não</th></tr>
+    <tr><td>6.1 Desenvolveu a programação para a inserção de um novo cliente associando-o a um barbeiro no banco de dados conforme descrito no caderno de provas?</td><td class="c">C7</td><td class="c">3</td><td></td><td></td><td></td></tr>
+</table>
+
+<table class="at">
+    <tr><th class="tit" colspan="6">ATIVIDADE 7. FUNCIONALIDADE DE GERENCIAMENTO DE AGENDAMENTOS</th></tr>
+    <tr><th>Evidência observável</th><th class="c">Capacidade</th><th class="c">Peso</th><th class="sn">Sim</th><th class="sn">Não</th><th class="just">Justificativa do Não</th></tr>
+    <tr><td>7.1 Desenvolveu a programação para listar os agendamentos ordenado por data conforme descrito no caderno de prova?</td><td class="c">C3</td><td class="c">3</td><td></td><td></td><td></td></tr>
+    <tr><td>7.2 Desenvolveu a programação para atualizar a data de um agendamento?</td><td class="c">C7</td><td class="c">2</td><td></td><td></td><td></td></tr>
+</table>
+
+<div class="total">Pontuação: ______ / 38 pontos (soma dos pesos dos itens marcados "Sim")</div>
+
+</body>
+</html>

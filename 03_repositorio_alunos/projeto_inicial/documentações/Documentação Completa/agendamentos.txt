@@ -1,0 +1,155 @@
+// ### Agendamentos: datas, JOIN triplo, ORDER BY e atualizar a data
+
+Critérios:
+  7.1 Listar os agendamentos ORDENADOS POR DATA (peso 3)
+      (o caderno pede "trazendo todos dados do barbeiro e do cliente")
+  7.2 Atualizar a data de um agendamento (peso 2)
+
+
+// ### Formato de data
+
+Front e API trocam datas no padrão ISO: 'YYYY-MM-DDTHH:mm' (ex: '2026-11-18T14:30').
+O T separa data e hora. É exatamente o que o <input type="datetime-local"> devolve no .value.
+O Postgres guarda em TIMESTAMP e aceita esse formato direto.
+
+
+// ### Backend
+
+// Listar: 2 INNER JOIN + ORDER BY data
+servidor.get('/agendamentos', { preHandler: autenticar }, async (request, reply) => {
+    const resultado = await sql.query(`
+        SELECT
+            agendamento.id,
+            agendamento.data_agendamento,
+            agendamento.servico,
+            barbeiro.id AS barbeiro_id,
+            barbeiro.nome AS barbeiro_nome,
+            barbeiro.email AS barbeiro_email,
+            barbeiro.telefone AS barbeiro_telefone,
+            cliente.id AS cliente_id,
+            cliente.nome AS cliente_nome,
+            cliente.telefone AS cliente_telefone,
+            cliente.estilo_corte AS cliente_estilo_corte
+        FROM agendamento
+        INNER JOIN barbeiro ON agendamento.barbeiro_id = barbeiro.id
+        INNER JOIN cliente ON agendamento.cliente_id = cliente.id
+        ORDER BY agendamento.data_agendamento ASC
+    `)
+    return resultado.rows
+})
+
+// OBS: o AS dá apelido. Sem ele, barbeiro.nome e cliente.nome viram os dois "nome"
+// e um sobrescreve o outro no JSON.
+
+// Cadastrar (útil para testar)
+servidor.post('/agendamentos', { preHandler: autenticar }, async (request, reply) => {
+    const body = request.body
+
+    if (!body || !body.data_agendamento || !body.servico || !body.barbeiro_id || !body.cliente_id) {
+        return reply.status(400).send({ message: 'Data, serviço, barbeiro e cliente são obrigatórios!' })
+    }
+
+    await sql.query(
+        'INSERT INTO agendamento (data_agendamento, servico, barbeiro_id, cliente_id) VALUES ($1, $2, $3, $4)',
+        [body.data_agendamento, body.servico, body.barbeiro_id, body.cliente_id]
+    )
+
+    return reply.status(201).send({ message: 'Agendamento cadastrado!' })
+})
+
+// Atualizar SÓ a data
+servidor.put('/agendamentos/:id', { preHandler: autenticar }, async (request, reply) => {
+    const body = request.body
+    const id = request.params.id
+
+    if (!body || !body.data_agendamento) {
+        return reply.status(400).send({ message: 'A nova data é obrigatória!' })
+    }
+
+    const resultado = await sql.query(
+        'UPDATE agendamento SET data_agendamento = $1 WHERE id = $2',
+        [body.data_agendamento, id]
+    )
+
+    if (resultado.rowCount === 0) {
+        return reply.status(404).send({ message: 'Agendamento não existe!' })
+    }
+
+    return reply.status(200).send({ message: 'Data do agendamento atualizada!' })
+})
+
+
+// ### Front (agendamentos.html) - listagem com campo de nova data em cada linha
+
+<table>
+    <thead>
+        <tr>
+            <th>Data</th><th>Serviço</th>
+            <th>Barbeiro</th><th>E-mail barbeiro</th><th>Tel. barbeiro</th>
+            <th>Cliente</th><th>Tel. cliente</th><th>Estilo</th>
+            <th>Nova data</th>
+        </tr>
+    </thead>
+    <tbody id="lista"></tbody>
+</table>
+
+<script src="sessao.js"></script>
+<script>
+    protegerPagina()
+
+    async function carregarAgendamentos() {
+        const agendamentos = await api('/agendamentos')
+        const lista = document.getElementById('lista')
+        lista.innerHTML = ''
+
+        agendamentos.forEach(ag => {
+            lista.innerHTML += `
+                <tr>
+                    <td>${formatarData(ag.data_agendamento)}</td>
+                    <td>${ag.servico}</td>
+                    <td>${ag.barbeiro_nome}</td>
+                    <td>${ag.barbeiro_email}</td>
+                    <td>${ag.barbeiro_telefone || ''}</td>
+                    <td>${ag.cliente_nome}</td>
+                    <td>${ag.cliente_telefone || ''}</td>
+                    <td>${ag.cliente_estilo_corte || ''}</td>
+                    <td>
+                        <input type="datetime-local" id="data-${ag.id}">
+                        <button onclick="atualizarData(${ag.id})">Atualizar data</button>
+                    </td>
+                </tr>
+            `
+        })
+    }
+
+    async function atualizarData(id) {
+        const novaData = document.getElementById(`data-${id}`).value
+
+        if (!novaData) {
+            alert('Escolha a nova data!')
+            return
+        }
+
+        const dados = await api(`/agendamentos/${id}`, 'PUT', { data_agendamento: novaData })
+        alert(dados.message)
+        carregarAgendamentos()   // a lista volta já reordenada
+    }
+
+    carregarAgendamentos()
+</script>
+
+
+// ### referencias.http
+
+### Listar agendamentos
+GET http://localhost:3000/agendamentos
+Authorization: Bearer {{token}}
+
+### Atualizar a data do agendamento 1
+PUT http://localhost:3000/agendamentos/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "data_agendamento": "2026-11-17T08:30"
+}

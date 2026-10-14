@@ -1,0 +1,116 @@
+### =====================================================================
+### SAEP 2026 - Simulado Barbearia - testes com REST Client
+### 1) Rode o login, copie o token da resposta e cole na variável abaixo
+### =====================================================================
+
+@token = COLE_O_TOKEN_AQUI
+
+### Login com sucesso
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+    "email": "marcos@barbearia.com",
+    "senha": "123"
+}
+
+
+### Login com falha (senha errada) -> 401
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+    "email": "marcos@barbearia.com",
+    "senha": "errada"
+}
+
+
+### Sem token -> 401
+GET http://localhost:3000/barbeiros
+
+
+### Listar barbeiros
+GET http://localhost:3000/barbeiros
+Authorization: Bearer {{token}}
+
+
+### Buscar barbeiros por termo
+GET http://localhost:3000/barbeiros?busca=raf
+Authorization: Bearer {{token}}
+
+
+### Cadastrar barbeiro (CPF e senha vão criptografados)
+POST http://localhost:3000/barbeiros
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nome": "Thiago Pente",
+    "email": "thiago@barbearia.com",
+    "cpf": "444.555.666-77",
+    "senha": "123",
+    "telefone": "48999994444"
+}
+
+
+### Editar barbeiro
+PUT http://localhost:3000/barbeiros/4
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nome": "Thiago Pente Jr",
+    "email": "thiago@barbearia.com",
+    "telefone": "48999995555"
+}
+
+
+### Excluir barbeiro
+DELETE http://localhost:3000/barbeiros/4
+Authorization: Bearer {{token}}
+
+
+### Listar clientes
+GET http://localhost:3000/clientes
+Authorization: Bearer {{token}}
+
+
+### Cadastrar cliente associado a um barbeiro
+POST http://localhost:3000/clientes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nome": "Pedro Henrique",
+    "telefone": "48988884444",
+    "estilo_corte": "Low fade",
+    "barbeiro_id": 1
+}
+
+
+### Listar agendamentos (ordenado por data, com barbeiro e cliente)
+GET http://localhost:3000/agendamentos
+Authorization: Bearer {{token}}
+
+
+### Cadastrar agendamento
+POST http://localhost:3000/agendamentos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "data_agendamento": "2026-11-21T15:00:00",
+    "servico": "Barba",
+    "barbeiro_id": 1,
+    "cliente_id": 1
+}
+
+
+### Atualizar a data de um agendamento
+PUT http://localhost:3000/agendamentos/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "data_agendamento": "2026-11-17T08:30:00"
+}

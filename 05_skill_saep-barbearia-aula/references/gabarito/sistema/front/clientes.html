@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbearia - Clientes</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <header>
+        <a href="principal.html">Principal</a>
+        <a href="barbeiros.html">Barbeiros</a>
+        <a href="agendamentos.html">Agendamentos</a>
+        <button onclick="sair()">Sair</button>
+    </header>
+
+    <main>
+        <h1>Clientes</h1>
+
+        <form id="formCliente" onsubmit="cadastrar(event)">
+            <h3>Cadastrar cliente</h3>
+            <input type="text" id="nome" placeholder="Nome">
+            <input type="text" id="telefone" placeholder="Telefone">
+            <input type="text" id="estilo_corte" placeholder="Estilo de corte">
+
+            <!-- O cliente PRECISA ser associado a um barbeiro -->
+            <select id="barbeiro_id">
+                <option value="">Selecione o barbeiro...</option>
+            </select>
+            <br>
+            <button type="submit">Cadastrar</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr><th>ID</th><th>Nome</th><th>Telefone</th><th>Estilo de corte</th><th>Barbeiro</th></tr>
+            </thead>
+            <tbody id="lista"></tbody>
+        </table>
+    </main>
+
+    <script src="sessao.js"></script>
+    <script>
+        protegerPagina()
+
+        // Preenche o <select> com os barbeiros do banco (value = id)
+        async function carregarBarbeiros() {
+            const barbeiros = await api('/barbeiros')
+            const select = document.getElementById('barbeiro_id')
+
+            barbeiros.forEach(barbeiro => {
+                const option = document.createElement('option')
+                option.value = barbeiro.id
+                option.textContent = barbeiro.nome
+                select.appendChild(option)
+            })
+        }
+
+        async function carregarClientes() {
+            const clientes = await api('/clientes')
+            const lista = document.getElementById('lista')
+            lista.innerHTML = ''
+
+            clientes.forEach(cliente => {
+                lista.innerHTML += `
+                    <tr>
+                        <td>${cliente.id}</td>
+                        <td>${cliente.nome}</td>
+                        <td>${cliente.telefone || ''}</td>
+                        <td>${cliente.estilo_corte || ''}</td>
+                        <td>${cliente.barbeiro_nome}</td>
+                    </tr>
+                `
+            })
+        }
+
+        async function cadastrar(event) {
+            event.preventDefault()
+
+            const cliente = {
+                nome: document.getElementById('nome').value,
+                telefone: document.getElementById('telefone').value,
+                estilo_corte: document.getElementById('estilo_corte').value,
+                barbeiro_id: document.getElementById('barbeiro_id').value
+            }
+
+            if (!cliente.barbeiro_id) {
+                alert('Selecione um barbeiro!')
+                return
+            }
+
+            const dados = await api('/clientes', 'POST', cliente)
+            alert(dados.message)
+            document.getElementById('formCliente').reset()
+            carregarClientes()
+        }
+
+        carregarBarbeiros()
+        carregarClientes()
+    </script>
+</body>
+</html>
