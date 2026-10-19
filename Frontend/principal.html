@@ -1,0 +1,23 @@
+<meta charset="UTF-8">
+
+<h1>barbearia</h1>
+
+<p>usuário logado: <b id="nomeUsuario"></b></p>
+
+<button onclick="sair()">sair</button>
+
+<h3>menu</h3>
+
+<a href="barbeiros.html">barbeiros</a> <br>
+<a href="clientes.html">clientes</a> <br>
+<a href="agendamentos.html">agendamentos</a>
+
+<script src="scripts.js"></script>
+<script>
+    protegerPagina()
+
+    const usuario = pegarUsuario()
+    if (usuario) {
+        document.getElementById('nomeUsuario').textContent = usuario.nome
+    }
+</script>

@@ -1,0 +1,102 @@
+<meta charset="UTF-8">
+
+<a href="principal.html">voltar</a>
+
+<h1>barbeiros</h1>
+
+<input type="text" placeholder="nome" id="nome">
+<input type="text" placeholder="cpf (ao editar, vazio mantém)" id="cpf">
+<input type="password" placeholder="senha (ao editar, vazio mantém)" id="senha">
+
+<button onclick="cadastrar()">cadastrar</button>
+<button onclick="salvarEdicao()">salvar alterações</button>
+
+<br> <br>
+
+<input type="text" placeholder="buscar por nome" id="termo">
+<button onclick="buscar()">buscar</button>
+
+<div id="lista"></div>
+
+<script src="scripts.js"></script>
+<script>
+    protegerPagina()
+
+    let barbeiros = []
+    let idEditando = null
+
+    async function carregar (busca) {
+        const caminho = busca ? `/barbeiros?busca=${encodeURIComponent(busca)}` : '/barbeiros'
+        barbeiros = await api(caminho)
+
+        const lista = document.getElementById('lista')
+        lista.innerHTML = ''
+
+        barbeiros.forEach((barbeiro) => {
+            lista.innerHTML += `
+            <br>
+            ${barbeiro.nome}
+            <button onclick="editar(${barbeiro.id})">editar</button>
+            <button onclick="excluir(${barbeiro.id})">excluir</button>
+            <br>`
+        })
+    }
+
+    function buscar () {
+        carregar(document.getElementById('termo').value)
+    }
+
+    function limparCampos () {
+        document.getElementById('nome').value = ''
+        document.getElementById('cpf').value = ''
+        document.getElementById('senha').value = ''
+        idEditando = null
+    }
+
+    async function cadastrar () {
+        const nome = document.getElementById('nome').value
+        const cpf = document.getElementById('cpf').value
+        const senha = document.getElementById('senha').value
+
+        const dados = await api('/barbeiros', 'POST', { nome, cpf, senha })
+        alert(dados.message)
+        limparCampos()
+        carregar()
+    }
+
+    // editar: joga o nome do barbeiro no campo. Depois é só mudar e clicar em "salvar alterações"
+    function editar (id) {
+        const barbeiro = barbeiros.find((b) => b.id === id)
+
+        idEditando = id
+        document.getElementById('nome').value = barbeiro.nome
+        document.getElementById('cpf').value = ''
+        document.getElementById('senha').value = ''
+    }
+
+    async function salvarEdicao () {
+        if (!idEditando) {
+            alert('Clique em editar no barbeiro que você quer alterar!')
+            return
+        }
+
+        const nome = document.getElementById('nome').value
+        const cpf = document.getElementById('cpf').value
+        const senha = document.getElementById('senha').value
+
+        const dados = await api(`/barbeiros/${idEditando}`, 'PUT', { nome, cpf, senha })
+        alert(dados.message)
+        limparCampos()
+        carregar()
+    }
+
+    async function excluir (id) {
+        if (!confirm('Deseja excluir este barbeiro?')) return
+
+        const dados = await api(`/barbeiros/${id}`, 'DELETE')
+        alert(dados.message)
+        carregar()
+    }
+
+    carregar()
+</script>

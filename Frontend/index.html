@@ -1,0 +1,52 @@
+<meta charset="UTF-8">
+
+<h1>barbearia - login</h1>
+
+<input type="text" placeholder="cpf" id="cpf">
+<input type="password" placeholder="senha" id="senha">
+
+<button onclick="entrar()">entrar</button>
+
+<p id="mensagem"></p>
+
+<script src="scripts.js"></script>
+<script>
+
+    // se já estiver logado, vai direto para a principal
+    if (sessaoValida()) {
+        window.location.href = 'principal.html'
+    }
+
+    async function entrar () {
+        const cpf = document.getElementById('cpf').value
+        const senha = document.getElementById('senha').value
+        const mensagem = document.getElementById('mensagem')
+
+        // validação: campos vazios
+        if (!cpf || !senha) {
+            mensagem.textContent = 'Preencha o cpf e a senha!'
+            return
+        }
+
+        const resposta = await fetch(API + '/login', {
+            method: 'POST',
+            body: JSON.stringify({ cpf, senha }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        const dados = await resposta.json()
+
+        // validação: cpf ou senha inválidos (a mensagem vem da API)
+        if (!resposta.ok) {
+            mensagem.textContent = dados.message
+            return
+        }
+
+        localStorage.setItem('token', dados.token)
+        localStorage.setItem('expira', dados.expira)
+        localStorage.setItem('usuario', JSON.stringify(dados.usuario))
+
+        window.location.href = 'principal.html'
+    }
+</script>

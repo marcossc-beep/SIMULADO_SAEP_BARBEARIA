@@ -1,0 +1,66 @@
+<meta charset="UTF-8">
+
+<a href="principal.html">voltar</a>
+
+<h1>clientes</h1>
+
+<input type="text" placeholder="nome" id="nome">
+<input type="text" placeholder="cpf" id="cpf">
+
+<select id="barbeiro_id">
+    <option value="">selecione o barbeiro</option>
+</select>
+
+<button onclick="cadastrar()">cadastrar</button>
+
+<div id="lista"></div>
+
+<script src="scripts.js"></script>
+<script>
+    protegerPagina()
+
+    // preenche o select com os barbeiros (o value é o id, o texto é o nome)
+    async function carregarBarbeiros () {
+        const barbeiros = await api('/barbeiros')
+        const select = document.getElementById('barbeiro_id')
+
+        barbeiros.forEach((barbeiro) => {
+            select.innerHTML += `<option value="${barbeiro.id}">${barbeiro.nome}</option>`
+        })
+    }
+
+    async function carregarClientes () {
+        const clientes = await api('/clientes')
+        const lista = document.getElementById('lista')
+        lista.innerHTML = ''
+
+        clientes.forEach((cliente) => {
+            lista.innerHTML += `
+            <br>
+            nome: ${cliente.nome} <br> cpf: ${cliente.cpf} <br> barbeiro: ${cliente.barbeiro_nome} <br>`
+        })
+    }
+
+    async function cadastrar () {
+        const nome = document.getElementById('nome').value
+        const cpf = document.getElementById('cpf').value
+        const barbeiro_id = document.getElementById('barbeiro_id').value
+
+        // todo cliente precisa ser associado a um barbeiro
+        if (!barbeiro_id) {
+            alert('Selecione o barbeiro!')
+            return
+        }
+
+        const dados = await api('/clientes', 'POST', { nome, cpf, barbeiro_id })
+        alert(dados.message)
+
+        document.getElementById('nome').value = ''
+        document.getElementById('cpf').value = ''
+        document.getElementById('barbeiro_id').value = ''
+        carregarClientes()
+    }
+
+    carregarBarbeiros()
+    carregarClientes()
+</script>

@@ -1,0 +1,47 @@
+<meta charset="UTF-8">
+
+<a href="principal.html">voltar</a>
+
+<h1>agendamentos</h1>
+
+<div id="lista"></div>
+
+<script src="scripts.js"></script>
+<script>
+    protegerPagina()
+
+    // a API já devolve os agendamentos ordenados pela data, com os dados do barbeiro e do cliente
+    async function carregar () {
+        const agendamentos = await api('/agendamentos')
+        const lista = document.getElementById('lista')
+        lista.innerHTML = ''
+
+        agendamentos.forEach((agendamento) => {
+            const data = new Date(agendamento.data_hora).toLocaleString('pt-BR')
+
+            lista.innerHTML += `
+            <br>
+            data: ${data} <br>
+            barbeiro: ${agendamento.barbeiro_nome} <br>
+            cliente: ${agendamento.cliente_nome} - cpf: ${agendamento.cliente_cpf} <br>
+            nova data: <input type="datetime-local" id="data-${agendamento.id}">
+            <button onclick="atualizarData(${agendamento.id})">atualizar data</button>
+            <br>`
+        })
+    }
+
+    async function atualizarData (id) {
+        const data_hora = document.getElementById(`data-${id}`).value
+
+        if (!data_hora) {
+            alert('Escolha a nova data!')
+            return
+        }
+
+        const dados = await api(`/agendamentos/${id}`, 'PUT', { data_hora })
+        alert(dados.message)
+        carregar()
+    }
+
+    carregar()
+</script>
