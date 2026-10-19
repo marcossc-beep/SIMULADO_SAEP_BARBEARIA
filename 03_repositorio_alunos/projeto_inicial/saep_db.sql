@@ -1,2 +1,0 @@
--- SAEP 2026 - Simulado Barbearia - saep_db.sql
--- Consulte: documentações/Documentação Completa/SQL.txt

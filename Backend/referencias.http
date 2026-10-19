@@ -1,0 +1,124 @@
+### ETAPA 1: testes da API (REST Client). Rode a API com: npm start
+
+
+### ---------------- BARBEIRO ----------------
+
+### Listar barbeiros (GET)
+
+GET http://localhost:6767/barbeiros
+
+
+### Buscar barbeiros por termo (GET com ?busca=)
+
+GET http://localhost:6767/barbeiros?busca=ana
+
+
+### Cadastrar barbeiro (POST)
+
+POST http://localhost:6767/barbeiros
+Content-Type: application/json
+
+{
+    "nome": "Thiago Pente",
+    "cpf": "444.555.666-77",
+    "senha": "senha000"
+}
+
+
+### Editar barbeiro (PUT)
+
+PUT http://localhost:6767/barbeiros/1
+Content-Type: application/json
+
+{
+    "nome": "Carlos Silva Junior",
+    "cpf": "111.222.333-44",
+    "senha": "senha123"
+}
+
+
+### Excluir barbeiro (DELETE)
+
+DELETE http://localhost:6767/barbeiros/4
+
+
+### ---------------- CLIENTE ----------------
+
+### Listar clientes (GET)
+
+GET http://localhost:6767/clientes
+
+
+### Cadastrar cliente associado a um barbeiro (POST)
+
+POST http://localhost:6767/clientes
+Content-Type: application/json
+
+{
+    "nome": "Pedro Henrique",
+    "cpf": "999.888.777-66",
+    "barbeiro_id": 1
+}
+
+
+### Cliente com barbeiro que não existe (esperado: 400)
+
+POST http://localhost:6767/clientes
+Content-Type: application/json
+
+{
+    "nome": "Teste",
+    "cpf": "000.000.000-00",
+    "barbeiro_id": 999
+}
+
+
+### Editar cliente (PUT)
+
+PUT http://localhost:6767/clientes/1
+Content-Type: application/json
+
+{
+    "nome": "Carlos Silva",
+    "cpf": "111.222.333-44",
+    "barbeiro_id": 2
+}
+
+
+### Excluir cliente (DELETE)
+
+DELETE http://localhost:6767/clientes/4
+
+
+### ---------------- AGENDAMENTO ----------------
+
+### Listar agendamentos ordenados por data, com barbeiro e cliente (GET com JOIN)
+
+GET http://localhost:6767/agendamentos
+
+
+### Cadastrar agendamento (POST)
+
+POST http://localhost:6767/agendamentos
+Content-Type: application/json
+
+{
+    "data_hora": "2026-11-21T15:00",
+    "barbeiro_id": 1,
+    "cliente_id": 1
+}
+
+
+### Atualizar só a data de um agendamento (PUT)
+
+PUT http://localhost:6767/agendamentos/1
+Content-Type: application/json
+
+{
+    "data_hora": "2026-11-17T08:30"
+}
+
+
+### Excluir agendamento (DELETE)
+
+DELETE http://localhost:6767/agendamentos/4
