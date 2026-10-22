@@ -98,10 +98,6 @@ servidor.get('/barbeiros', { preHandler: autenticar }, async (request, reply) =>
 servidor.post('/barbeiros', { preHandler: autenticar }, async (request, reply) => {
     const body = request.body
 
-    if (!body || !body.nome || !body.cpf || !body.senha) {
-        return reply.status(400).send({ message: 'nome, cpf e senha são obrigatórios!' })
-    }
-
     // LGPD: CPF e senha são salvos criptografados (hash bcrypt)
     const cpfHash = await bcrypt.hash(body.cpf, 10)
     const senhaHash = await bcrypt.hash(body.senha, 10)
@@ -118,25 +114,21 @@ servidor.put('/barbeiros/:id', { preHandler: autenticar }, async (request, reply
     const body = request.body
     const id = request.params.id
 
-    if (!body || !body.nome) {
-        return reply.status(400).send({ message: 'nome é obrigatório!' })
-    }
-
     const barbeiro = await sql.query('SELECT id FROM barbeiro WHERE id = $1', [id])
     if (barbeiro.rows.length === 0) {
         return reply.status(404).send({ message: 'Barbeiro não existe!' })
     }
 
-    await sql.query('UPDATE barbeiro SET nome = $1 WHERE id = $2', [body.nome, id])
+    await sql.query('UPDATE barbeiro SET nome = $2 WHERE id = $1', [id, body.nome])
 
     // CPF e senha só mudam se forem enviados (e continuam criptografados)
     if (body.cpf) {
         const cpfHash = await bcrypt.hash(body.cpf, 10)
-        await sql.query('UPDATE barbeiro SET cpf = $1 WHERE id = $2', [cpfHash, id])
+        await sql.query('UPDATE barbeiro SET cpf = $2 WHERE id = $1', [id, cpfHash])
     }
     if (body.senha) {
         const senhaHash = await bcrypt.hash(body.senha, 10)
-        await sql.query('UPDATE barbeiro SET senha = $1 WHERE id = $2', [senhaHash, id])
+        await sql.query('UPDATE barbeiro SET senha = $2 WHERE id = $1', [id, senhaHash])
     }
 
     reply.status(200).send({ message: `barbeiro ${body.nome} alterado!` })
@@ -165,10 +157,6 @@ servidor.get('/clientes', { preHandler: autenticar }, async (request, reply) => 
 servidor.post('/clientes', { preHandler: autenticar }, async (request, reply) => {
     const body = request.body
 
-    if (!body || !body.nome || !body.cpf || !body.barbeiro_id) {
-        return reply.status(400).send({ message: 'nome, cpf e barbeiro_id são obrigatórios!' })
-    }
-
     // antes de gravar, confere se o barbeiro existe
     const barbeiro = await sql.query('SELECT id FROM barbeiro WHERE id = $1', [body.barbeiro_id])
     if (barbeiro.rows.length === 0) {
@@ -187,10 +175,6 @@ servidor.put('/clientes/:id', { preHandler: autenticar }, async (request, reply)
     const body = request.body
     const id = request.params.id
 
-    if (!body || !body.nome || !body.cpf || !body.barbeiro_id) {
-        return reply.status(400).send({ message: 'nome, cpf e barbeiro_id são obrigatórios!' })
-    }
-
     const cliente = await sql.query('SELECT id FROM cliente WHERE id = $1', [id])
     if (cliente.rows.length === 0) {
         return reply.status(404).send({ message: 'Cliente não existe!' })
@@ -202,8 +186,8 @@ servidor.put('/clientes/:id', { preHandler: autenticar }, async (request, reply)
     }
 
     await sql.query(
-        'UPDATE cliente SET nome = $1, cpf = $2, barbeiro_id = $3 WHERE id = $4',
-        [body.nome, body.cpf, body.barbeiro_id, id]
+        'UPDATE cliente SET nome = $2, cpf = $3, barbeiro_id = $4 WHERE id = $1',
+        [id, body.nome, body.cpf, body.barbeiro_id]
     )
 
     reply.status(200).send({ message: `cliente ${body.nome} alterado!` })
@@ -241,10 +225,6 @@ servidor.get('/agendamentos', { preHandler: autenticar }, async (request, reply)
 servidor.post('/agendamentos', { preHandler: autenticar }, async (request, reply) => {
     const body = request.body
 
-    if (!body || !body.data_hora || !body.barbeiro_id || !body.cliente_id) {
-        return reply.status(400).send({ message: 'data_hora, barbeiro_id e cliente_id são obrigatórios!' })
-    }
-
     // duas chaves estrangeiras: confere as duas antes de gravar
     const barbeiro = await sql.query('SELECT id FROM barbeiro WHERE id = $1', [body.barbeiro_id])
     if (barbeiro.rows.length === 0) {
@@ -269,13 +249,9 @@ servidor.put('/agendamentos/:id', { preHandler: autenticar }, async (request, re
     const body = request.body
     const id = request.params.id
 
-    if (!body || !body.data_hora) {
-        return reply.status(400).send({ message: 'A nova data é obrigatória!' })
-    }
-
     const resultado = await sql.query(
-        'UPDATE agendamento SET data_hora = $1 WHERE id = $2',
-        [body.data_hora, id]
+        'UPDATE agendamento SET data_hora = $2 WHERE id = $1',
+        [id, body.data_hora]
     )
 
     if (resultado.rowCount === 0) {

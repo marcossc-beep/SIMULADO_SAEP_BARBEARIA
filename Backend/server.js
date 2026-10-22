@@ -38,10 +38,6 @@ servidor.get('/barbeiros', async (request, reply) => {
 servidor.post('/barbeiros', async (request, reply) => {
     const body = request.body
 
-    if (!body || !body.nome || !body.cpf || !body.senha) {
-        return reply.status(400).send({ message: "nome, cpf e senha são obrigatórios!" })
-    }
-
     await sql.query(
         'INSERT INTO barbeiro (nome, cpf, senha) VALUES ($1, $2, $3)',
         [body.nome, body.cpf, body.senha]
@@ -54,16 +50,6 @@ servidor.put('/barbeiros/:id', async (request, reply) => {
     const body = request.body
     const id = request.params.id
 
-    if (!body || !body.nome || !body.cpf || !body.senha) {
-        return reply.status(400).send({
-            message: "nome, cpf e senha são obrigatórios!"
-        })
-    } else if (!id) {
-        return reply.status(400).send({
-            message: "Faltou o ID!"
-        })
-    }
-
     const barbeiro = await sql.query('select * from barbeiro where id = $1', [id])
     if (barbeiro.rows.length === 0) {
         return reply.status(400).send({
@@ -72,8 +58,8 @@ servidor.put('/barbeiros/:id', async (request, reply) => {
     }
 
     await sql.query(
-        'UPDATE barbeiro SET nome = $1, cpf = $2, senha = $3 WHERE id = $4',
-        [body.nome, body.cpf, body.senha, id]
+        'UPDATE barbeiro SET nome = $2, cpf = $3, senha = $4 WHERE id = $1',
+        [id, body.nome, body.cpf, body.senha]
     )
     reply.status(201).send({ message: `barbeiro ${body.nome} alterado!` })
 })
@@ -95,10 +81,6 @@ servidor.get('/clientes', async (request, reply) => {
 servidor.post('/clientes', async (request, reply) => {
     const body = request.body
 
-    if (!body || !body.nome || !body.cpf || !body.barbeiro_id) {
-        return reply.status(400).send({ message: "nome, cpf e barbeiro_id são obrigatórios!" })
-    }
-
     // antes de gravar, confere se o barbeiro existe
     const barbeiro = await sql.query('SELECT id FROM barbeiro WHERE id = $1', [body.barbeiro_id])
     if (barbeiro.rows.length === 0) {
@@ -117,12 +99,6 @@ servidor.put('/clientes/:id', async (request, reply) => {
     const body = request.body
     const id = request.params.id
 
-    if (!body || !body.nome || !body.cpf || !body.barbeiro_id) {
-        return reply.status(400).send({
-            message: "nome, cpf e barbeiro_id são obrigatórios!"
-        })
-    }
-
     const cliente = await sql.query('select * from cliente where id = $1', [id])
     if (cliente.rows.length === 0) {
         return reply.status(400).send({
@@ -136,8 +112,8 @@ servidor.put('/clientes/:id', async (request, reply) => {
     }
 
     await sql.query(
-        'UPDATE cliente SET nome = $1, cpf = $2, barbeiro_id = $3 WHERE id = $4',
-        [body.nome, body.cpf, body.barbeiro_id, id]
+        'UPDATE cliente SET nome = $2, cpf = $3, barbeiro_id = $4 WHERE id = $1',
+        [id, body.nome, body.cpf, body.barbeiro_id]
     )
     reply.status(201).send({ message: `cliente ${body.nome} alterado!` })
 })
@@ -153,31 +129,27 @@ servidor.delete('/clientes/:id', async (request, reply) => {
 
 // GET com JOIN triplo, ordenado pela data (é o GET /reunioes da documentação).
 // Traz os dados do barbeiro e do cliente de cada agendamento. A senha do barbeiro fica de fora de propósito.
-servidor.get('/agendamentos', async (request, reply) => {
-    const agendamentos = await sql.query(`
-        SELECT
-            agendamento.id,
-            agendamento.data_hora,
-            barbeiro.id AS barbeiro_id,
-            barbeiro.nome AS barbeiro_nome,
-            barbeiro.cpf AS barbeiro_cpf,
-            cliente.id AS cliente_id,
-            cliente.nome AS cliente_nome,
-            cliente.cpf AS cliente_cpf
-        FROM agendamento
-        INNER JOIN barbeiro ON agendamento.barbeiro_id = barbeiro.id
-        INNER JOIN cliente ON agendamento.cliente_id = cliente.id
-        ORDER BY agendamento.data_hora ASC
-    `)
-    reply.send(agendamentos.rows)
-})
+    servidor.get('/agendamentos', async (request, reply) => {
+        const agendamentos = await sql.query(`
+            SELECT
+                agendamento.id,
+                agendamento.data_hora,
+                barbeiro.id AS barbeiro_id,
+                barbeiro.nome AS barbeiro_nome,
+                barbeiro.cpf AS barbeiro_cpf,
+                cliente.id AS cliente_id,
+                cliente.nome AS cliente_nome,
+                cliente.cpf AS cliente_cpf
+            FROM agendamento
+            INNER JOIN barbeiro ON agendamento.barbeiro_id = barbeiro.id
+            INNER JOIN cliente ON agendamento.cliente_id = cliente.id
+            ORDER BY agendamento.data_hora ASC
+        `)
+        reply.send(agendamentos.rows)
+    })
 
 servidor.post('/agendamentos', async (request, reply) => {
     const body = request.body
-
-    if (!body || !body.data_hora || !body.barbeiro_id || !body.cliente_id) {
-        return reply.status(400).send({ message: "data_hora, barbeiro_id e cliente_id são obrigatórios!" })
-    }
 
     // duas chaves estrangeiras: confere as duas antes de gravar
     const barbeiro = await sql.query('SELECT id FROM barbeiro WHERE id = $1', [body.barbeiro_id])
@@ -203,13 +175,9 @@ servidor.put('/agendamentos/:id', async (request, reply) => {
     const body = request.body
     const id = request.params.id
 
-    if (!body || !body.data_hora) {
-        return reply.status(400).send({ message: "A nova data é obrigatória!" })
-    }
-
     const resultado = await sql.query(
-        'UPDATE agendamento SET data_hora = $1 WHERE id = $2',
-        [body.data_hora, id]
+        'UPDATE agendamento SET data_hora = $2 WHERE id = $1',
+        [id, body.data_hora]
     )
 
     if (resultado.rowCount === 0) {
